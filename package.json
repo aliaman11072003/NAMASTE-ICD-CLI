@@ -1,0 +1,30 @@
+{
+  "name": "namaste-icd-cli",
+  "version": "1.0.0",
+  "description": "CLI-based MVP for integrating NAMASTE and ICD-11 (TM2 + Biomedicine) into EMR systems",
+  "main": "dist/app.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "dev": "ts-node src/app.ts",
+    "watch": "nodemon --exec ts-node src/app.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["namaste", "icd-11", "fhir", "emr", "ayurveda", "traditional-medicine"],
+  "author": "Aman",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "@types/node": "^20.0.0",
+    "mongoose": "^8.0.0",
+    "commander": "^11.0.0",
+    "csv-parser": "^3.0.0",
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.0"
+  },
+  "devDependencies": {
+    "@types/mongoose": "^5.11.0",
+    "nodemon": "^3.0.0"
+  }
+}

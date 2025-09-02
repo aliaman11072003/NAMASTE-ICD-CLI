@@ -1,0 +1,21 @@
+code,name,description,category
+NAM001,Agnimandya,Weak digestion characterized by reduced digestive fire and poor appetite,Digestive
+NAM002,Vata Rog,Disorder related to Vata dosha causing various symptoms,General
+NAM003,Pitta Rog,Disorder related to Pitta dosha causing inflammation and heat,General
+NAM004,Kapha Rog,Disorder related to Kapha dosha causing heaviness and congestion,General
+NAM005,Amavata,Rheumatoid arthritis with accumulation of toxins in joints,Musculoskeletal
+NAM006,Prameha,Diabetes mellitus with excessive urination and thirst,Endocrine
+NAM007,Rajayakshma,Tuberculosis affecting the respiratory system,Respiratory
+NAM008,Shotha,Edema and swelling in various parts of the body,General
+NAM009,Arsha,Hemorrhoids and anal disorders,Digestive
+NAM010,Kustha,Skin diseases and dermatological conditions,Dermatological
+NAM011,Unmada,Mental disorders and psychiatric conditions,Neurological
+NAM012,Apasmara,Epilepsy and seizure disorders,Neurological
+NAM013,Hridroga,Heart diseases and cardiovascular conditions,Cardiovascular
+NAM014,Yakrit Vikar,Liver disorders and hepatic conditions,Hepatobiliary
+NAM015,Pliha Vikar,Spleen disorders and splenic conditions,Hematological
+NAM016,Mutraghata,Urinary disorders and bladder conditions,Genitourinary
+NAM017,Ashmari,Kidney stones and renal conditions,Genitourinary
+NAM018,Shukra Dosha,Male reproductive disorders and infertility,Reproductive
+NAM019,Artava Dosha,Female reproductive disorders and menstrual problems,Reproductive
+NAM020,Garbha Dosha,Pregnancy-related disorders and complications,Obstetric

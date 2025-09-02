@@ -1,0 +1,48 @@
+{
+  "resourceType": "Encounter",
+  "id": "enc-001",
+  "status": "finished",
+  "class": {
+    "system": "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+    "code": "AMB",
+    "display": "ambulatory"
+  },
+  "subject": {
+    "reference": "Patient/patient-001",
+    "display": "John Doe"
+  },
+  "period": {
+    "start": "2024-01-15T10:00:00Z",
+    "end": "2024-01-15T11:00:00Z"
+  },
+  "reasonCode": [
+    {
+      "coding": [
+        {
+          "system": "https://namaste.ayush.gov.in/codes",
+          "code": "NAM001",
+          "display": "Agnimandya"
+        }
+      ],
+      "text": "Weak digestion"
+    }
+  ],
+  "diagnosis": [
+    {
+      "condition": {
+        "reference": "Condition/cond-001",
+        "display": "Digestive disorder"
+      },
+      "use": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org/CodeSystem/diagnosis-use",
+            "code": "principal",
+            "display": "Principal Diagnosis"
+          }
+        ]
+      },
+      "rank": 1
+    }
+  ]
+}
