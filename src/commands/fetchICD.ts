@@ -1,5 +1,5 @@
 import { ICDCode } from '../models';
-import whoApi from '../utils/whoApi';
+import { createAxiosClient } from '../services/icdAuth';
 import { FHIRUtils } from '../utils/fhirUtils';
 import auditLogger from '../utils/auditLogger';
 import * as fs from 'fs';
@@ -14,17 +14,20 @@ export async function fetchICD(query: string, type: 'TM2' | 'Biomedicine' | 'bot
   let totalInserted = 0;
 
   try {
+    // Create authenticated ICD API client
+    const icdClient = createAxiosClient('https://id.who.int');
+    
     // Fetch codes based on type
     if (type === 'TM2' || type === 'both') {
       console.log('\n🌿 Fetching TM2 (Traditional Medicine Module 2) codes...');
-      tm2Codes = await whoApi.searchTM2Codes(query);
-      console.log(whoApi.formatSearchResults(tm2Codes, 'TM2'));
+      tm2Codes = await searchTM2Codes(icdClient, query);
+      console.log(formatSearchResults(tm2Codes, 'TM2'));
     }
 
     if (type === 'Biomedicine' || type === 'both') {
       console.log('\n🏥 Fetching Biomedicine codes...');
-      biomedicineCodes = await whoApi.searchBiomedicineCodes(query);
-      console.log(whoApi.formatSearchResults(biomedicineCodes, 'Biomedicine'));
+      biomedicineCodes = await searchBiomedicineCodes(icdClient, query);
+      console.log(formatSearchResults(biomedicineCodes, 'Biomedicine'));
     }
 
     // Process and store TM2 codes
@@ -140,4 +143,72 @@ export async function fetchICD(query: string, type: 'TM2' | 'Biomedicine' | 'bot
     console.error('❌ Error during ICD-11 code fetching:', error);
     throw error;
   }
+}
+
+// Helper methods for searching ICD codes
+async function searchTM2Codes(client: any, query: string): Promise<any[]> {
+  try {
+    const response = await client.get('/icd/release/11/2023/search', {
+      params: {
+        q: query,
+        propertiesToBeSearched: 'Title,Definition,Exclusion,Inclusion',
+        useFlexisearch: true,
+        flatResults: false,
+        linearization: 'tm2'
+      }
+    });
+
+    if (response.data && response.data.destinationEntities) {
+      return response.data.destinationEntities;
+    }
+    return [];
+  } catch (error) {
+    console.error('❌ Error searching TM2 codes:', error);
+    return [];
+  }
+}
+
+async function searchBiomedicineCodes(client: any, query: string): Promise<any[]> {
+  try {
+    const response = await client.get('/icd/release/11/2023/search', {
+      params: {
+        q: query,
+        propertiesToBeSearched: 'Title,Definition,Exclusion,Inclusion',
+        useFlexisearch: true,
+        flatResults: false,
+        linearization: 'mms'
+      }
+    });
+
+    if (response.data && response.data.destinationEntities) {
+      return response.data.destinationEntities;
+    }
+    return [];
+  } catch (error) {
+    console.error('❌ Error searching Biomedicine codes:', error);
+    return [];
+  }
+}
+
+function formatSearchResults(entities: any[], type: 'TM2' | 'Biomedicine'): string {
+  if (entities.length === 0) {
+    return `No ICD-11 ${type} codes found.`;
+  }
+
+  let result = `\n📋 ICD-11 ${type} Codes Found (${entities.length}):\n`;
+  result += '─'.repeat(80) + '\n';
+
+  entities.forEach((entity, index) => {
+    result += `${index + 1}. Code: ${entity.id}\n`;
+    result += `   Title: ${entity.title}\n`;
+    if (entity.definition) {
+      result += `   Definition: ${entity.definition.substring(0, 100)}${entity.definition.length > 100 ? '...' : ''}\n`;
+    }
+    if (entity.inclusion && entity.inclusion.length > 0) {
+      result += `   Inclusion: ${entity.inclusion[0].substring(0, 80)}${entity.inclusion[0].length > 80 ? '...' : ''}\n`;
+    }
+    result += '\n';
+  });
+
+  return result;
 }

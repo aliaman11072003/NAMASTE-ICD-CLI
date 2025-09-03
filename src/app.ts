@@ -170,9 +170,14 @@ program
 
       // Check WHO API status
       console.log('\n🌐 WHO API Status:');
-      const whoApi = (await import('./utils/whoApi')).default;
-      const apiStatus = await whoApi.getAPIStatus();
-      console.log(`   ${apiStatus ? '✅' : '❌'} WHO ICD-11 API: ${apiStatus ? 'Available' : 'Unavailable'}`);
+      try {
+        const { createAxiosClient } = await import('./services/icdAuth');
+        const client = createAxiosClient('https://id.who.int');
+        const response = await client.get('/icd/release/11/2023');
+        console.log(`   ✅ WHO ICD-11 API: Available (Status: ${response.status})`);
+      } catch (error) {
+        console.log(`   ❌ WHO ICD-11 API: Unavailable - ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
 
       console.log('\n✨ System status check completed!');
     } catch (error) {

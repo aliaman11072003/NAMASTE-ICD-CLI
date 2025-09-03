@@ -60,6 +60,17 @@ This integration enables accurate clinical documentation, decision support, and 
    # Edit .env with your MongoDB connection and WHO API settings
    ```
 
+4. **Configure ICD API credentials**
+   ```bash
+   # Option 1: Use the automated setup script
+   ./setup-env.sh
+   
+   # Option 2: Manually edit .env file
+   # Add your ICD API credentials:
+   # ICD_CLIENT_ID=your_client_id_here
+   # ICD_CLIENT_SECRET=your_client_secret_here
+   ```
+
 4. **Build the project**
    ```bash
    npm run build
@@ -80,6 +91,46 @@ This integration enables accurate clinical documentation, decision support, and 
    ```bash
    npm run dev status
    ```
+
+### ICD API Authentication
+
+The CLI requires valid ICD API credentials to access WHO's ICD-11 API. These credentials are provided by WHO and should be kept secure.
+
+**⚠️ Security Notice**: Never commit your `.env` file to version control. It's already included in `.gitignore`.
+
+**Setup Options**:
+
+1. **Automated Setup** (Recommended):
+   ```bash
+   ./setup-env.sh
+   ```
+
+2. **Manual Setup**:
+   - Copy `env.example` to `.env`
+   - Add your ICD API credentials:
+     ```bash
+     ICD_CLIENT_ID=4e6bb28f-227f-4fb1-a4f1-13740a2d4f54_c9c79725-47f9-4cd8-a039-b3142bb0261e
+     ICD_CLIENT_SECRET=1e0iNv0msJLjA26vUzcMSVzLJOBqnid4fe3Sf4ZlXnE=
+     ICD_TOKEN_ENDPOINT=https://icdaccessmanagement.who.int/connect/token
+     TOKEN_STORE=inmemory
+     ```
+
+**Testing Authentication**:
+```bash
+# Test the new authentication module
+npm run test-auth-module
+
+# Test ICD API connectivity via CLI
+npm run dev fetch-icd "test" --type both
+```
+
+**Auth Module Features**:
+- **OAuth 2 Client Credentials**: Automatic token management with caching
+- **Token Storage**: In-memory (default) or MongoDB-backed storage
+- **Automatic Refresh**: Tokens refresh before expiry with 10-second grace period
+- **Concurrency Safe**: Multiple requests share the same token refresh
+- **Retry Logic**: Exponential backoff for failed token requests
+- **HTTPS Enforcement**: Automatically converts HTTP URLs to HTTPS
 
 ## 📖 Usage
 
@@ -253,6 +304,14 @@ MONGODB_URI=mongodb://localhost:27017/namaste_icd_db
 WHO_API_BASE_URL=https://id.who.int/icd/release/11/2023
 WHO_API_TIMEOUT=10000
 
+# ICD API Authentication (Required)
+ICD_CLIENT_ID=your_client_id_here
+ICD_CLIENT_SECRET=your_client_secret_here
+ICD_TOKEN_ENDPOINT=https://icdaccessmanagement.who.int/connect/token
+
+# Token Storage
+TOKEN_STORE=inmemory  # or 'mongo' for MongoDB storage
+
 # Application
 NODE_ENV=development
 LOG_LEVEL=info
@@ -297,6 +356,99 @@ FHIR_BASE_URL=http://localhost:3000/fhir
    ```bash
    npm run dev view-logs
    ```
+
+## 🔐 Auth Module (ICD API)
+
+The CLI includes a robust OAuth 2 authentication module for the WHO ICD-11 API.
+
+### Environment Variables
+
+```bash
+# Required
+ICD_CLIENT_ID=your_client_id_here
+ICD_CLIENT_SECRET=your_client_secret_here
+
+# Optional
+ICD_TOKEN_ENDPOINT=https://icdaccessmanagement.who.int/connect/token
+TOKEN_STORE=inmemory  # or 'mongo' for MongoDB storage
+```
+
+### Usage Examples
+
+```typescript
+import { getAccessToken, createAxiosClient } from './src/services/icdAuth';
+
+// Get a valid access token
+const token = await getAccessToken();
+
+// Create an authenticated Axios client
+const client = createAxiosClient('https://id.who.int');
+
+// Make authenticated requests
+const response = await client.get('/icd/release/11/2023/search', {
+  params: { q: 'cholera' }
+});
+```
+
+### Token Storage Options
+
+- **In-Memory** (default): Fast, but tokens are lost on restart
+- **MongoDB**: Persistent storage, suitable for production deployments
+
+### Testing
+
+```bash
+# Run the authentication module tests
+npm run test-auth-module
+
+# Test CLI integration
+npm run dev fetch-icd "cholera" --type both
+```
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### ICD API Authentication Errors
+- **Error**: "401 Unauthorized" or "403 Forbidden"
+  - **Solution**: Verify your ICD API credentials in `.env` file
+  - **Check**: Run `./setup-env.sh` to reconfigure credentials
+  - **Verify**: Ensure `ICD_CLIENT_ID` and `ICD_CLIENT_SECRET` are correct
+  - **Test**: Run `npm run test-auth-module` to test the authentication module
+
+- **Error**: "Token refresh failed" or OAuth errors
+  - **Solution**: Check your internet connection and firewall settings
+  - **Verify**: Ensure the token endpoint is accessible
+  - **Debug**: Check logs for specific error details
+
+#### API Rate Limiting
+- **Error**: "429 Too Many Requests"
+  - **Solution**: Wait a few minutes before retrying
+  - **Note**: WHO API has rate limits for free tier usage
+
+#### Network Connectivity
+- **Error**: "ECONNREFUSED" or timeout errors
+  - **Solution**: Check internet connection and firewall settings
+  - **Verify**: Test with `npm run dev fetch-icd "test" --type both`
+
+#### MongoDB Connection Issues
+- **Error**: "MongoServerSelectionError"
+  - **Solution**: Ensure MongoDB is running on the configured port
+  - **Check**: Verify `MONGODB_URI` in your `.env` file
+
+### Debug Mode
+
+Enable verbose logging by setting:
+```bash
+LOG_LEVEL=debug
+```
+
+### Getting Help
+
+1. Check the audit logs: `npm run dev view-logs`
+2. Verify environment configuration: `cat .env`
+3. Test API connectivity: `npm run dev fetch-icd "test"`
+4. Check MongoDB status: Ensure MongoDB service is running
 
 ## 🔒 Security & Compliance
 
