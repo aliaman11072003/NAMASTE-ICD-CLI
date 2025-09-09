@@ -15,7 +15,10 @@ export async function fetchICD(query: string, type: 'TM2' | 'Biomedicine' | 'bot
 
   try {
     // Create authenticated ICD API client
-    const icdClient = createAxiosClient('https://id.who.int');
+    // Use WHO_API_BASE_URL if provided, otherwise default to latest release path
+    // Example: https://id.who.int/icd/release/11/2024
+    const apiBase = process.env.WHO_API_BASE_URL || 'https://id.who.int/icd/release/11/2024';
+    const icdClient = createAxiosClient(apiBase);
     
     // Fetch codes based on type
     if (type === 'TM2' || type === 'both') {
@@ -148,13 +151,14 @@ export async function fetchICD(query: string, type: 'TM2' | 'Biomedicine' | 'bot
 // Helper methods for searching ICD codes
 async function searchTM2Codes(client: any, query: string): Promise<any[]> {
   try {
-    const response = await client.get('/icd/release/11/2023/search', {
+    // Correct WHO ICD API path uses /linearization/{lin}/search under the release base URL
+    const response = await client.get('/linearization/tm2/search', {
       params: {
         q: query,
         propertiesToBeSearched: 'Title,Definition,Exclusion,Inclusion',
         useFlexisearch: true,
         flatResults: false,
-        linearization: 'tm2'
+        // linearization specified in path
       }
     });
 
@@ -170,13 +174,14 @@ async function searchTM2Codes(client: any, query: string): Promise<any[]> {
 
 async function searchBiomedicineCodes(client: any, query: string): Promise<any[]> {
   try {
-    const response = await client.get('/icd/release/11/2023/search', {
+    // Correct WHO ICD API path uses /linearization/{lin}/search under the release base URL
+    const response = await client.get('/linearization/mms/search', {
       params: {
         q: query,
         propertiesToBeSearched: 'Title,Definition,Exclusion,Inclusion',
         useFlexisearch: true,
         flatResults: false,
-        linearization: 'mms'
+        // linearization specified in path
       }
     });
 
