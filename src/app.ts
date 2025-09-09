@@ -18,6 +18,7 @@ import { translate } from './commands/translate';
 import { uploadEncounter } from './commands/uploadEncounter';
 import { viewLogs } from './commands/viewLogs';
 import { autoMap } from './commands/autoMap';
+import { advancedWhoApiDemo, lookupCode, autocodeText } from './commands/advancedWhoApi';
 
 const program = new Command();
 
@@ -185,6 +186,54 @@ program
     }
   });
 
+program
+  .command('who-demo <term>')
+  .description('Demonstrate advanced WHO ICD-11 API features including lookup, autocode, and NAMASTE integration')
+  .option('-u, --user <user>', 'User performing the action', 'system')
+  .action(async (term: string, options: { user: string }) => {
+    try {
+      await Database.connect();
+      auditLogger.setUser(options.user);
+      await advancedWhoApiDemo(term);
+    } catch (error) {
+      console.error('❌ Error:', error);
+      await auditLogger.logError('who_demo', error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('lookup-code <code>')
+  .description('Look up detailed information about a specific ICD-11 code')
+  .option('-u, --user <user>', 'User performing the action', 'system')
+  .action(async (code: string, options: { user: string }) => {
+    try {
+      await Database.connect();
+      auditLogger.setUser(options.user);
+      await lookupCode(code);
+    } catch (error) {
+      console.error('❌ Error:', error);
+      await auditLogger.logError('lookup_code', error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('autocode <text>')
+  .description('Automatically code diagnostic text using WHO ICD-11 API')
+  .option('-u, --user <user>', 'User performing the action', 'system')
+  .action(async (text: string, options: { user: string }) => {
+    try {
+      await Database.connect();
+      auditLogger.setUser(options.user);
+      await autocodeText(text);
+    } catch (error) {
+      console.error('❌ Error:', error);
+      await auditLogger.logError('autocode', error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
 // Add a status command to check system health
 program
   .command('status')
@@ -229,6 +278,9 @@ Examples:
   $ namaste-icd-cli fetch-icd "digestion" --type TM2
   $ namaste-icd-cli map-code NAM123 ICD456 --type TM2
   $ namaste-icd-cli auto-map
+  $ namaste-icd-cli who-demo "digestion"
+  $ namaste-icd-cli lookup-code "SA00"
+  $ namaste-icd-cli autocode "weak digestive fire"
   $ namaste-icd-cli search "digestion"
   $ namaste-icd-cli translate NAM123
   $ namaste-icd-cli upload-encounter encounter.json
