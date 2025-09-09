@@ -195,6 +195,7 @@ export class ICDAuthService {
       headers: {
         'API-Version': 'v2',
         'Accept': 'application/json, application/ld+json',
+        'Accept-Language': 'en',
         'User-Agent': 'NAMASTE-ICD-CLI/1.0.0'
       }
     });

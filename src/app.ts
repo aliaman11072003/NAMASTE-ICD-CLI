@@ -10,12 +10,14 @@ dotenv.config();
 
 // Import commands
 import { ingestNAMASTE } from './commands/ingestNAMASTE';
+import { ingestWithAutoMapping } from './commands/ingestWithAutoMapping';
 import { fetchICD } from './commands/fetchICD';
 import { mapCode } from './commands/mapCode';
 import { search } from './commands/search';
 import { translate } from './commands/translate';
 import { uploadEncounter } from './commands/uploadEncounter';
 import { viewLogs } from './commands/viewLogs';
+import { autoMap } from './commands/autoMap';
 
 const program = new Command();
 
@@ -41,6 +43,22 @@ program
     } catch (error) {
       console.error('❌ Error:', error);
       await auditLogger.logError('ingest_namaste', error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('ingest-with-mapping <csv-file>')
+  .description('Import NAMASTE codes and automatically generate equivalent ICD-11 codes and mappings')
+  .option('-u, --user <user>', 'User performing the action', 'system')
+  .action(async (csvFile: string, options: { user: string }) => {
+    try {
+      await Database.connect();
+      auditLogger.setUser(options.user);
+      await ingestWithAutoMapping(csvFile);
+    } catch (error) {
+      console.error('❌ Error:', error);
+      await auditLogger.logError('ingest_with_mapping', error instanceof Error ? error.message : String(error));
       process.exit(1);
     }
   });
@@ -151,6 +169,22 @@ program
     }
   });
 
+program
+  .command('auto-map')
+  .description('Automatically map NAMASTE codes to ICD-11 codes based on text similarity')
+  .option('-u, --user <user>', 'User performing the action', 'system')
+  .action(async (options: { user: string }) => {
+    try {
+      await Database.connect();
+      auditLogger.setUser(options.user);
+      await autoMap();
+    } catch (error) {
+      console.error('❌ Error:', error);
+      await auditLogger.logError('auto_map', error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
 // Add a status command to check system health
 program
   .command('status')
@@ -191,8 +225,10 @@ program.addHelpText('after', `
 
 Examples:
   $ namaste-icd-cli ingest-namaste namaste.csv
+  $ namaste-icd-cli ingest-with-mapping namaste.csv
   $ namaste-icd-cli fetch-icd "digestion" --type TM2
   $ namaste-icd-cli map-code NAM123 ICD456 --type TM2
+  $ namaste-icd-cli auto-map
   $ namaste-icd-cli search "digestion"
   $ namaste-icd-cli translate NAM123
   $ namaste-icd-cli upload-encounter encounter.json
